@@ -1,18 +1,15 @@
-import RPi.GPIO as GPIO
 from time import sleep
 from threading import Thread
+from lightgrid import Lightgrid
 
-GPIO.setmode(GPIO.BOARD)
 
-image = [ 	[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-			[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-			[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
-			[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+imagebuf = [ 	[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 		]
 
-cpins = [ [3,5,7], [8,10,12], [11,13,15], [16,18,22], [19,21,23] ]
-rpins = [ 32, 36, 38, 40 ]
-
+# declare some colors		
 r = [1,0,0]
 y = [1,1,0]
 g = [0,1,0]
@@ -21,119 +18,109 @@ b = [0,0,1]
 v = [1,0,1]
 w = [1,1,1]
 colorlist = [r,y,w,g,c,b,v]
+colordict = {
+				'r': r,
+				'y': y,
+				'g': g,
+				'c': c,
+				'b': b,
+				'v': v,
+				'w': w
+			}		
+			
 
-offsleep = 0
-kill = False
 
-for set in cpins:
-	for pin in set:
-		GPIO.setup(pin, GPIO.OUT)
-
-for pin in rpins:
-	GPIO.setup(pin, GPIO.OUT)
+def postimg():
+	thegrid.image = imagebuf
 	
-
-# set all pins low
-for pin in rpins:
-	GPIO.output(pin, GPIO.LOW)
-
-	
-def display():
-	while True:
-		if kill == True: exit()
-		for r in range(len(rpins)):
-			for s in range(len(cpins)): # set
-				for p in range(len(cpins[0])):	# pin
-					if image[r][s][p] == 1:
-						GPIO.output(cpins[s][p], 1)
-					else: GPIO.output(cpins[s][p], 0)
-						
-			GPIO.output(rpins[r], GPIO.HIGH)
-			sleep(.0001)
-			GPIO.output(rpins[r], GPIO.LOW)
-			sleep(offsleep)
-
 def left():
 	hold = []
-	for i in range(len(image)):
-		for x in range(len(image[0])):
+	for i in range(len(imagebuf)):
+		for x in range(len(imagebuf[0])):
 			if x == 0:
-				hold.append(image[i][x])
+				hold.append(imagebuf[i][x])
 			else:
-				image[i][x-1] = image[i][x]
+				imagebuf[i][x-1] = imagebuf[i][x]
 	for i in range(len(hold)):
-		image[i][4] = hold[i]
+		imagebuf[i][4] = hold[i]
+	postimg()
 		
 def right():
 	hold = []
-	for i in range(len(image)):
-		for x in range(len(image[0])):
+	for i in range(len(imagebuf)):
+		for x in range(len(imagebuf[0])):
 			if 4-x == 4:
-				hold.append(image[i][4-x])
+				hold.append(imagebuf[i][4-x])
 			else:
-				image[i][4-x+1] = image[i][4-x]
+				imagebuf[i][4-x+1] = imagebuf[i][4-x]
 	for i in range(len(hold)):
-		image[i][0] = hold[i]
+		imagebuf[i][0] = hold[i]
+	postimg()
 		
 def displist():
 	for color in colorlist:
-		for r in range(len(image)):
-			for c in range(len(image[0])):
-				image[r][c] = color
+		for r in range(len(imagebuf)):
+			for c in range(len(imagebuf[0])):
+				imagebuf[r][c] = color
+		postimg()
 		sleep(2)
-
+	
 def brightness(val):
-	global offsleep
-	offsleep = val
+	thegrid.offsleep = val
 	
 def fullraise():
-	global offsleep
 	step = .0001
 	
-	while offsleep >= 0+step:
-		offsleep = offsleep - step
+	while thegrid.offsleep >= 0+step:
+		thegrid.offsleep -= step
 		sleep(.01)
-		
+	
+	
 def fulldrop():
-	global offsleep
 	step = .0001
 	
-	while offsleep <= .009:
-		offsleep = offsleep + step
+	while thegrid.offsleep <= .009:
+		thegrid.offsleep += step
 		sleep(.01)
-	
-def lower():
-	pass
-	
-def rainbow():
-	for x in range(len(image)):
-		for z in range(len(image[0])):
-			if z == 0: image[x][z] = r 
-			elif z == 1: image[x][z] = y
-			elif z == 2: image[x][z] = g
-			elif z == 3: image[x][z] = c
-			else: image[x][z] = b
 
+		
+def rainbow():
+	for x in range(len(imagebuf)):
+		for z in range(len(imagebuf[0])):
+			if z == 0: imagebuf[x][z] = r 
+			elif z == 1: imagebuf[x][z] = y
+			elif z == 2: imagebuf[x][z] = g
+			elif z == 3: imagebuf[x][z] = c
+			else: imagebuf[x][z] = b
+	postimg()
+
+'''
 def colorall():
-	color = input('\tcolor(r,y,g,c,b,w): ')
-	
+	thiscolor = input('\tcolor(r,y,g,c,b,w): ')
+	print(thiscolor)
+	for row in range(len(imagebuf)):
+		for led in range(len(imagebuf[0])):
+			imagebuf[row][led] = colordict[thiscolor]
+	postimg()
+'''	
 				
-	
+
+
+
+thegrid = Lightgrid()				
 			
 image2 = [ 	[[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 			[[0, 0, 0], [1, 1, 0], [0, 0, 0], [0, 0, 0], [1, 0, 1]],
 			[[0, 0, 0], [0, 0, 0], [0, 1, 0], [0, 0, 0], [0, 0, 1]],
 			[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 1], [0, 0, 0]]
 		]	
-image = image2
-
-mythread = Thread(target=display)
-mythread.start()
+imagebuf = image2
+postimg()
 
 while True:
 	uin = raw_input('> ')
 	if uin == 'exit':
-		kill = True
+		thegrid.kill = True
 		exit()
 	if uin =='left':
 		left()
@@ -151,4 +138,4 @@ while True:
 	if uin == 'rainbow':
 		rainbow()
 	if uin == 'colorall':
-		colorall():
+		colorall()
