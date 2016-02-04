@@ -10,7 +10,7 @@ class Lightgrid(threading.Thread):
 	offsleep = 0
 	kill = False
 
-	image = [ 	[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+	image = [	[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
@@ -22,6 +22,7 @@ class Lightgrid(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 
+		GPIO.setwarnings(False)
 		GPIO.setmode(GPIO.BOARD)
 		
 		# set all col pins for output

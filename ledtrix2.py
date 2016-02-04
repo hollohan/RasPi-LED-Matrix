@@ -1,5 +1,4 @@
 from time import sleep
-from threading import Thread
 from lightgrid import Lightgrid
 
 
@@ -7,7 +6,7 @@ imagebuf = [ 	[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 				[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
-		]
+			]
 
 # declare some colors		
 r = [1,0,0]
@@ -17,7 +16,8 @@ c = [0,1,1]
 b = [0,0,1]
 v = [1,0,1]
 w = [1,1,1]
-colorlist = [r,y,w,g,c,b,v]
+n = [0,0,0]
+colorlist = [r,y,w,g,c,b,v,r]
 colordict = {
 				'r': r,
 				'y': y,
@@ -29,9 +29,6 @@ colordict = {
 			}		
 			
 
-
-def postimg():
-	thegrid.image = imagebuf
 	
 def left():
 	hold = []
@@ -43,7 +40,12 @@ def left():
 				imagebuf[i][x-1] = imagebuf[i][x]
 	for i in range(len(hold)):
 		imagebuf[i][4] = hold[i]
-	postimg()
+def runleft():
+	wait = float(raw_input('wait(sec): '))
+	count = int(raw_input('# of times: '))
+	for i in range(count):
+		left()
+		sleep(wait)
 		
 def right():
 	hold = []
@@ -55,14 +57,18 @@ def right():
 				imagebuf[i][4-x+1] = imagebuf[i][4-x]
 	for i in range(len(hold)):
 		imagebuf[i][0] = hold[i]
-	postimg()
+def runright():
+	wait = float(raw_input('wait(sec): '))
+	count = int(raw_input('# of times: '))
+	for i in range(count):
+		right()
+		sleep(wait)
 		
 def displist():
 	for color in colorlist:
 		for r in range(len(imagebuf)):
 			for c in range(len(imagebuf[0])):
 				imagebuf[r][c] = color
-		postimg()
 		sleep(2)
 	
 def brightness(val):
@@ -92,17 +98,56 @@ def rainbow():
 			elif z == 2: imagebuf[x][z] = g
 			elif z == 3: imagebuf[x][z] = c
 			else: imagebuf[x][z] = b
-	postimg()
 
-'''
+
 def colorall():
-	thiscolor = input('\tcolor(r,y,g,c,b,w): ')
+	thiscolor = raw_input('\tcolor(r,y,g,c,b,w): ')
 	print(thiscolor)
 	for row in range(len(imagebuf)):
 		for led in range(len(imagebuf[0])):
 			imagebuf[row][led] = colordict[thiscolor]
-	postimg()
-'''	
+	
+def closeall():
+	thegrid.kill = True
+	exit()
+
+def pickbright():
+	newval = float(raw_input('new val: '))
+	brightness(newval)
+	
+
+def diagbow():
+	
+	xlen = len(imagebuf[0])
+	ylen = len(imagebuf)
+	
+	for y in range(ylen):
+		for x in range(xlen):
+			for i in range(-4, 5):
+			
+				if y == x + i:
+					imagebuf[ylen-y-1][x] = colorlist[i+4]
+
+
+def flash():
+	global imagebuf
+	thegrid.image = imagebuf
+	count = int(raw_input('# of times: '))
+	on = float(raw_input('time on(sec): '))
+	off = float(raw_input('time off(sec): '))
+
+	imagebufholder = imagebuf[:]
+	blankboard = [	[n,n,n,n,n],
+					[n,n,n,n,n],
+					[n,n,n,n,n],
+					[n,n,n,n,n]]
+	
+	for i in range(count):
+		thegrid.image = blankboard
+		sleep(off)
+		thegrid.image = imagebufholder
+		sleep(on)
+	
 				
 
 
@@ -115,27 +160,29 @@ image2 = [ 	[[1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
 			[[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 1, 1], [0, 0, 0]]
 		]	
 imagebuf = image2
-postimg()
 
+thegrid.image = imagebuf
+
+
+opts = {
+			'exit'		:closeall,
+			'left'		:left,
+			'right'		:right,
+			'displist'	:displist,
+			'bright'	:pickbright,
+			'raise'		:fullraise,
+			'drop'		:fulldrop,
+			'rainbow'	:rainbow,
+			'colorall'	:colorall,
+			'diagbow'	:diagbow,
+			'flash'		:flash,
+			'runright'	:runright,
+			'runleft'	:runleft
+		}
+
+		
 while True:
-	uin = raw_input('> ')
-	if uin == 'exit':
-		thegrid.kill = True
-		exit()
-	if uin =='left':
-		left()
-	if uin =='right':
-		right()
-	if uin =='displist':
-		displist()
-	if uin == 'bright':
-		newval = float(raw_input('new val: '))
-		brightness(newval)
-	if uin == 'raise':
-		fullraise()
-	if uin == 'drop':
-		fulldrop()
-	if uin == 'rainbow':
-		rainbow()
-	if uin == 'colorall':
-		colorall()
+	userin = raw_input('> ')
+	if userin in opts:
+		opts[userin]()
+
