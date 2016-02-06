@@ -17,7 +17,7 @@ b = [0,0,1]
 v = [1,0,1]
 w = [1,1,1]
 n = [0,0,0]
-colorlist = [r,y,w,g,c,b,v,r]
+colorlist = [r,y,w,g,c,b,v,r,n]
 colordict = {
 				'r': r,
 				'y': y,
@@ -25,7 +25,8 @@ colordict = {
 				'c': c,
 				'b': b,
 				'v': v,
-				'w': w
+				'w': w,
+				'n': n
 			}		
 			
 
@@ -148,7 +149,12 @@ def flash():
 		thegrid.image = imagebufholder
 		sleep(on)
 	
-				
+def colorcollumn():
+	colnum = int(raw_input('collumn#: '))
+	color = raw_input('color(v,r,g,b,c,y,w,n): ')
+	for x in range(len(imagebuf)):
+		imagebuf[x][colnum] = colordict[color]
+		
 
 
 
@@ -177,7 +183,8 @@ opts = {
 			'diagbow'	:diagbow,
 			'flash'		:flash,
 			'runright'	:runright,
-			'runleft'	:runleft
+			'runleft'	:runleft,
+			'colorcol'	:colorcollumn
 		}
 
 		
